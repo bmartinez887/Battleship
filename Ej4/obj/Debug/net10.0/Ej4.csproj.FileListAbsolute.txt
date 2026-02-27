@@ -1,0 +1,14 @@
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/bin/Debug/net10.0/Ej4
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/bin/Debug/net10.0/Ej4.deps.json
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/bin/Debug/net10.0/Ej4.runtimeconfig.json
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/bin/Debug/net10.0/Ej4.dll
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/bin/Debug/net10.0/Ej4.pdb
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/obj/Debug/net10.0/Ej4.GeneratedMSBuildEditorConfig.editorconfig
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/obj/Debug/net10.0/Ej4.AssemblyInfoInputs.cache
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/obj/Debug/net10.0/Ej4.AssemblyInfo.cs
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/obj/Debug/net10.0/Ej4.csproj.CoreCompileInputs.cache
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/obj/Debug/net10.0/Ej4.dll
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/obj/Debug/net10.0/refint/Ej4.dll
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/obj/Debug/net10.0/Ej4.pdb
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/obj/Debug/net10.0/Ej4.genruntimeconfig.cache
+/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/obj/Debug/net10.0/ref/Ej4.dll
