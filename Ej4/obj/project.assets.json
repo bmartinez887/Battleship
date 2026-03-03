@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/Ej4.csproj",
+      "projectUniqueName": "/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Battleship/Ej4/Ej4.csproj",
       "projectName": "Ej4",
-      "projectPath": "/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/Ej4.csproj",
+      "projectPath": "/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Battleship/Ej4/Ej4.csproj",
       "packagesPath": "/Users/brisamartinez/.nuget/packages/",
-      "outputPath": "/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Ej4/obj/",
+      "outputPath": "/Users/brisamartinez/Tec. de Simulacion/Ejercicios4/Battleship/Ej4/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/brisamartinez/.nuget/NuGet/NuGet.Config"

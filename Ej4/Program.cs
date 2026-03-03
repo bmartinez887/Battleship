@@ -1,193 +1,373 @@
 ﻿using System;
+using System.Collections.Generic;
 
 class Program
 {
     static void Main()
     {
-        int size = 10;
+        int size = 10; // Tamano del tablero 10x10
 
-        char[,] playerBoard = CreateEmptyBoard(size);
-        char[,] opponentBoard = GetRandomOpponentBoard(size);
-        char[,] shotsBoard = CreateEmptyBoard(size);
+        // Creo mi setup (tablero + lista de barcos) hard-coded
+        PlayerSetup player = CreatePlayerSetup(size);
 
-        Console.WriteLine("=== Place your ships ===");
-        PlacePlayerShips(playerBoard);
+        // Selecciono aleatoriamente 1 de los 5 setups del oponente (tablero + barcos)
+        int opponentBoardNumber;
+        Setup opponent = GetRandomOpponentSetup(size, out opponentBoardNumber);
 
-        Console.WriteLine("\nYour board:");
-        PrintBoard(playerBoard);
+        // Tablero donde registro MIS disparos  (X=hit, O=miss)
+        char[,] myShotsBoard = CreateEmptyBoard(size);
 
-        Console.WriteLine("\n=== Game start! Shoot the opponent ===");
+       
+        char[,] opponentShotsBoard = CreateEmptyBoard(size);
 
-        int remainingOpponentCells = CountCells(opponentBoard, 'V');
+        Console.WriteLine(" My board (hard-coded) ");
+        PrintBoard(player.Board);
 
-        while (remainingOpponentCells > 0)
+        Console.WriteLine($"\nOpponent board selected: Board #{opponentBoardNumber} ");
+        Console.WriteLine("Game start ");
+
+        
+        int remainingOpponentCells = CountCells(opponent.Board, 'V');
+        int remainingPlayerCells = CountCells(player.Board, 'V');
+
+        
+        Random rng = new Random();
+
+        
+        
+        bool playerTurn = true;
+
+        // El juego termina cuando uno de los dos llegue a 0 partes restantes
+        while (remainingOpponentCells > 0 && remainingPlayerCells > 0)
         {
-            Console.WriteLine("\nYour shots board (X=hit, O=miss):");
-            PrintBoard(shotsBoard);
-
-            int r, c;
-            while (true)
+            if (playerTurn)
             {
-                Console.Write("Shoot Row (0-9): ");
-                if (!int.TryParse(Console.ReadLine(), out r)) { Console.WriteLine("Invalid number."); continue; }
+                Console.WriteLine("\n--- YOUR TURN ---");
 
-                Console.Write("Shoot Col (0-9): ");
-                if (!int.TryParse(Console.ReadLine(), out c)) { Console.WriteLine("Invalid number."); continue; }
+                // Muestro tablero de mis disparos para que no dispare repetido
+                Console.WriteLine("My shots board (X=hit, O=miss):");
+                PrintBoard(myShotsBoard);
 
-                if (r < 0 || r >= size || c < 0 || c >= size)
+                int r, c;
+
+                // Pido coordenadas y valido que sean correctas y no repetidas
+                while (true)
                 {
-                    Console.WriteLine("Out of bounds. Try again.");
-                    continue;
+                    Console.Write("Row (0-9): ");
+                    if (!int.TryParse(Console.ReadLine(), out r))
+                    {
+                        Console.WriteLine("Invalid number.");
+                        continue;
+                    }
+
+                    Console.Write("Col (0-9): ");
+                    if (!int.TryParse(Console.ReadLine(), out c))
+                    {
+                        Console.WriteLine("Invalid number.");
+                        continue;
+                    }
+
+                    if (r < 0 || r >= size || c < 0 || c >= size)
+                    {
+                        Console.WriteLine("Out of bounds.");
+                        continue;
+                    }
+
+                    if (myShotsBoard[r, c] == 'X' || myShotsBoard[r, c] == 'O')
+                    {
+                        Console.WriteLine("Already shot there.");
+                        continue;
+                    }
+
+                    break;
                 }
 
-                if (shotsBoard[r, c] == 'X' || shotsBoard[r, c] == 'O')
+                // Si habia barco del oponente en esa posicion, es HIT
+                if (opponent.Board[r, c] == 'V')
                 {
-                    Console.WriteLine("You already shot there. Try again.");
-                    continue;
+                    Console.WriteLine("HIT!");
+                    myShotsBoard[r, c] = 'X';     // Marco el acierto en mi tablero de disparos
+                    opponent.Board[r, c] = 'X';   // Marco el golpe en el tablero oculto del oponente
+                    remainingOpponentCells--;     // Disminuyo las partes restantes del oponente
+
+                    // Reviso si este golpe hundio un barco completo del oponente
+                    foreach (Ship ship in opponent.Ships)
+                    {
+                        if (!ship.SunkAnnounced && ship.IsSunk(opponent.Board))
+                        {
+                            ship.SunkAnnounced = true; // Evita anunciarlo dos veces
+                            Console.WriteLine("You sunk a ship!");
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("MISS!");
+                    myShotsBoard[r, c] = 'O'; // Marco fallo
                 }
 
-                break;
-            }
+                // Si ya gane, corto antes de que dispare el oponente
+                if (remainingOpponentCells == 0)
+                    break;
 
-            if (opponentBoard[r, c] == 'V')
-            {
-                Console.WriteLine("HIT!");
-                shotsBoard[r, c] = 'X';
-                opponentBoard[r, c] = 'X'; 
-                remainingOpponentCells--;
+                // Cambio turno al oponente
+                playerTurn = false;
             }
             else
             {
-                Console.WriteLine("MISS!");
-                shotsBoard[r, c] = 'O';
+                Console.WriteLine("\n OPPONENT TURN ");
+
+               
+                
+                int r, c;
+                while (true)
+                {
+                    r = rng.Next(size);
+                    c = rng.Next(size);
+
+                   
+                    if (opponentShotsBoard[r, c] == 'X' || opponentShotsBoard[r, c] == 'O')
+                        continue;
+
+                    break;
+                }
+
+                Console.WriteLine($"Opponent shoots: ({r}, {c})");
+
+             
+                if (player.Board[r, c] == 'V')
+                {
+                    Console.WriteLine("Opponent HIT!");
+                    opponentShotsBoard[r, c] = 'X'; 
+                    player.Board[r, c] = 'X';        
+                    remainingPlayerCells--;          
+
+                    
+                    foreach (Ship ship in player.Ships)
+                    {
+                        if (!ship.SunkAnnounced && ship.IsSunk(player.Board))
+                        {
+                            ship.SunkAnnounced = true;
+                            Console.WriteLine("Opponent sunk one of your ships!");
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Opponent MISS!");
+                    opponentShotsBoard[r, c] = 'O'; 
+                }
+
+               
+                Console.WriteLine("\nMy board after opponent shot:");
+                PrintBoard(player.Board);
+
+                
+                playerTurn = true;
             }
         }
 
-        Console.WriteLine("\nYOU WIN! You sank all opponent ships!");
-        Console.WriteLine("\nFinal shots board:");
-        PrintBoard(shotsBoard);
+      
+        if (remainingOpponentCells == 0)
+        {
+            Console.WriteLine("\nYOU WIN! All opponent ships sunk.");
+        }
+        else
+        {
+            Console.WriteLine("\nOPPONENT WINS! All your ships were sunk.");
+        }
     }
 
     
 
-    static void PlacePlayerShips(char[,] playerBoard)
+    // Representa una celda (fila, columna)
+    struct Cell
     {
-        int[] shipSizes = { 2, 3, 4 };
+        public int R;
+        public int C;
 
-        for (int i = 0; i < shipSizes.Length; i++)
+        public Cell(int r, int c)
         {
-            int shipSize = shipSizes[i];
-            Console.WriteLine($"\nPlace ship of size {shipSize}");
-
-            int row, col;
-            char direction;
-
-            while (true)
-            {
-                Console.Write("Row (0-9): ");
-                if (!int.TryParse(Console.ReadLine(), out row)) { Console.WriteLine("Invalid number."); continue; }
-
-                Console.Write("Column (0-9): ");
-                if (!int.TryParse(Console.ReadLine(), out col)) { Console.WriteLine("Invalid number."); continue; }
-
-                Console.Write("Direction (R=right, D=down): ");
-                string dirInput = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(dirInput)) { Console.WriteLine("Invalid direction."); continue; }
-                direction = char.ToUpper(dirInput[0]);
-
-                if (direction != 'R' && direction != 'D')
-                {
-                    Console.WriteLine("Direction must be R or D.");
-                    continue;
-                }
-
-                if (CanPlaceShip(playerBoard, row, col, direction, shipSize))
-                {
-                    PlaceShip(playerBoard, row, col, direction, shipSize, 'V');
-                    break;
-                }
-
-                Console.WriteLine("Invalid position (out of bounds or overlaps). Try again.");
-            }
-
-            Console.WriteLine("\nYour board so far:");
-            PrintBoard(playerBoard);
+            R = r;
+            C = c;
         }
     }
 
-    static bool CanPlaceShip(char[,] board, int row, int col, char dir, int size)
+    // Un barco es una lista de celdas; esta hundido cuando TODAS esas celdas son 'X'
+    class Ship
     {
+        public Cell[] Cells;        // Coordenadas del barco
+        public bool SunkAnnounced;  // Para no imprimir "sunk" dos veces
+
+        public Ship(Cell[] cells)
+        {
+            Cells = cells;
+            SunkAnnounced = false;
+        }
+
+        public bool IsSunk(char[,] board)
+        {
+            foreach (var cell in Cells)
+            {
+                if (board[cell.R, cell.C] != 'X')
+                    return false;
+            }
+            return true;
+        }
+    }
+
+    // Setup generico (tablero + barcos)
+    class Setup
+    {
+        public char[,] Board;
+        public Ship[] Ships;
+
+        public Setup(char[,] board, Ship[] ships)
+        {
+            Board = board;
+            Ships = ships;
+        }
+    }
+
+    // Para el jugador, uso el mismo concepto (solo nombre diferente por claridad)
+    class PlayerSetup : Setup
+    {
+        public PlayerSetup(char[,] board, Ship[] ships) : base(board, ships) { }
+    }
+
+    
+
+    static PlayerSetup CreatePlayerSetup(int size)
+    {
+        char[,] b = CreateEmptyBoard(size);
+        var ships = new List<Ship>();
+
+        // 2 barcos de 2
+        ships.Add(AddHardcodedShip(b, 0, 0, 'R', 2));
+        ships.Add(AddHardcodedShip(b, 2, 7, 'D', 2));
+
+        // 2 barcos de 3
+        ships.Add(AddHardcodedShip(b, 5, 1, 'R', 3));
+        ships.Add(AddHardcodedShip(b, 7, 6, 'D', 3));
+
+        // 1 barco de 4
+        ships.Add(AddHardcodedShip(b, 9, 1, 'R', 4));
+
+        return new PlayerSetup(b, ships.ToArray());
+    }
+
+ 
+
+    static Setup GetRandomOpponentSetup(int size, out int boardNumber)
+    {
+        Setup[] setups = CreateOpponentSetups(size);
+
+        Random rng = new Random();
+        int pick = rng.Next(setups.Length);
+
+        boardNumber = pick + 1; // Para mostrar 1-5
+        return setups[pick];
+    }
+
+    static Setup[] CreateOpponentSetups(int size)
+    {
+        Setup[] setups = new Setup[5];
+
+        // Setup 1
+        {
+            char[,] b = CreateEmptyBoard(size);
+            var ships = new List<Ship>();
+
+            ships.Add(AddHardcodedShip(b, 0, 8, 'D', 2));
+            ships.Add(AddHardcodedShip(b, 3, 0, 'R', 2));
+            ships.Add(AddHardcodedShip(b, 1, 2, 'D', 3));
+            ships.Add(AddHardcodedShip(b, 6, 5, 'R', 3));
+            ships.Add(AddHardcodedShip(b, 8, 1, 'R', 4));
+
+            setups[0] = new Setup(b, ships.ToArray());
+        }
+
+        // Setup 2
+        {
+            char[,] b = CreateEmptyBoard(size);
+            var ships = new List<Ship>();
+
+            ships.Add(AddHardcodedShip(b, 0, 0, 'R', 2));
+            ships.Add(AddHardcodedShip(b, 4, 9, 'D', 2));
+            ships.Add(AddHardcodedShip(b, 2, 4, 'R', 3));
+            ships.Add(AddHardcodedShip(b, 7, 2, 'D', 3));
+            ships.Add(AddHardcodedShip(b, 9, 5, 'R', 4));
+
+            setups[1] = new Setup(b, ships.ToArray());
+        }
+
+        // Setup 3
+        {
+            char[,] b = CreateEmptyBoard(size);
+            var ships = new List<Ship>();
+
+            ships.Add(AddHardcodedShip(b, 1, 6, 'D', 2));
+            ships.Add(AddHardcodedShip(b, 9, 0, 'R', 2));
+            ships.Add(AddHardcodedShip(b, 0, 2, 'R', 3));
+            ships.Add(AddHardcodedShip(b, 4, 4, 'D', 3));
+            ships.Add(AddHardcodedShip(b, 6, 8, 'D', 4));
+
+            setups[2] = new Setup(b, ships.ToArray());
+        }
+
+        // Setup 4
+        {
+            char[,] b = CreateEmptyBoard(size);
+            var ships = new List<Ship>();
+
+            ships.Add(AddHardcodedShip(b, 2, 2, 'R', 2));
+            ships.Add(AddHardcodedShip(b, 5, 9, 'D', 2));
+            ships.Add(AddHardcodedShip(b, 0, 7, 'D', 3));
+            ships.Add(AddHardcodedShip(b, 6, 1, 'R', 3));
+            ships.Add(AddHardcodedShip(b, 8, 4, 'R', 4));
+
+            setups[3] = new Setup(b, ships.ToArray());
+        }
+
+        // Setup 5
+        {
+            char[,] b = CreateEmptyBoard(size);
+            var ships = new List<Ship>();
+
+            ships.Add(AddHardcodedShip(b, 3, 3, 'D', 2));
+            ships.Add(AddHardcodedShip(b, 0, 9, 'D', 2));
+            ships.Add(AddHardcodedShip(b, 1, 0, 'R', 3));
+            ships.Add(AddHardcodedShip(b, 7, 6, 'R', 3));
+            ships.Add(AddHardcodedShip(b, 4, 5, 'D', 4));
+
+            setups[4] = new Setup(b, ships.ToArray());
+        }
+
+        return setups;
+    }
+
+
+    static Ship AddHardcodedShip(char[,] board, int row, int col, char dir, int length)
+    {
+        dir = char.ToUpper(dir);
+
+        // dr/dc define si crece hacia abajo o a la derecha
         int dr = (dir == 'D') ? 1 : 0;
         int dc = (dir == 'R') ? 1 : 0;
 
-        for (int i = 0; i < size; i++)
+        Cell[] cells = new Cell[length];
+
+        // Coloco el barco con 'V' y guardo cada coordenada en el arreglo cells
+        for (int i = 0; i < length; i++)
         {
             int r = row + dr * i;
             int c = col + dc * i;
 
-            if (r < 0 || r >= board.GetLength(0) || c < 0 || c >= board.GetLength(1))
-                return false;
-
-            if (board[r, c] != '~')
-                return false;
+            board[r, c] = 'V';
+            cells[i] = new Cell(r, c);
         }
 
-        return true;
-    }
-
-    static void PlaceShip(char[,] board, int row, int col, char dir, int size, char symbol)
-    {
-        int dr = (dir == 'D') ? 1 : 0;
-        int dc = (dir == 'R') ? 1 : 0;
-
-        for (int i = 0; i < size; i++)
-        {
-            board[row + dr * i, col + dc * i] = symbol;
-        }
-    }
-
-    
-
-    static char[,] GetRandomOpponentBoard(int size)
-    {
-        char[][,] boards = CreateHardcodedOpponentBoards(size);
-        Random rng = new Random();
-        int pick = rng.Next(boards.Length);
-        return boards[pick];
-    }
-
-    static char[][,] CreateHardcodedOpponentBoards(int size)
-    {
-        char[][,] boards = new char[5][,];
-
-        boards[0] = CreateEmptyBoard(size);
-        PlaceShip(boards[0], 0, 0, 'R', 2, 'V');
-        PlaceShip(boards[0], 2, 2, 'D', 3, 'V');
-        PlaceShip(boards[0], 6, 4, 'R', 4, 'V');
-
-        boards[1] = CreateEmptyBoard(size);
-        PlaceShip(boards[1], 1, 7, 'D', 2, 'V');
-        PlaceShip(boards[1], 4, 1, 'R', 3, 'V');
-        PlaceShip(boards[1], 8, 2, 'R', 4, 'V');
-
-        boards[2] = CreateEmptyBoard(size);
-        PlaceShip(boards[2], 3, 3, 'R', 2, 'V');
-        PlaceShip(boards[2], 0, 9, 'D', 3, 'V');
-        PlaceShip(boards[2], 5, 0, 'D', 4, 'V');
-
-        boards[3] = CreateEmptyBoard(size);
-        PlaceShip(boards[3], 9, 0, 'R', 2, 'V');
-        PlaceShip(boards[3], 1, 4, 'D', 3, 'V');
-        PlaceShip(boards[3], 4, 6, 'D', 4, 'V');
-
-        boards[4] = CreateEmptyBoard(size);
-        PlaceShip(boards[4], 7, 7, 'R', 2, 'V');
-        PlaceShip(boards[4], 2, 0, 'R', 3, 'V');
-        PlaceShip(boards[4], 0, 5, 'D', 4, 'V');
-
-         
-
-        return boards;
+        return new Ship(cells);
     }
 
     
@@ -195,29 +375,35 @@ class Program
     static char[,] CreateEmptyBoard(int size)
     {
         char[,] board = new char[size, size];
+
+        // Lleno el tablero con agua '~'
         for (int r = 0; r < size; r++)
             for (int c = 0; c < size; c++)
                 board[r, c] = '~';
+
         return board;
     }
 
     static int CountCells(char[,] board, char target)
     {
         int count = 0;
+
+        // Cuento cuantas celdas tienen el caracter target
         for (int r = 0; r < board.GetLength(0); r++)
             for (int c = 0; c < board.GetLength(1); c++)
-                if (board[r, c] == target) count++;
+                if (board[r, c] == target)
+                    count++;
+
         return count;
     }
 
     static void PrintBoard(char[,] board)
     {
+        // Imprime el tablero con formato [ ]
         for (int r = 0; r < board.GetLength(0); r++)
         {
             for (int c = 0; c < board.GetLength(1); c++)
-            {
                 Console.Write($"[{board[r, c]}]");
-            }
             Console.WriteLine();
         }
     }
